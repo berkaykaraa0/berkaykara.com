@@ -4,14 +4,18 @@ require_once __DIR__ . '/../config/database.php';
 // ── Session ────────────────────────────────────────────────
 function startSession(): void {
     if (session_status() === PHP_SESSION_NONE) {
-        session_set_cookie_params([
-            'lifetime' => 3600,
-            'path'     => '/',
-            'secure'   => false, // set true on HTTPS
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        session_start();
+        if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+            session_start();
+        } else {
+            session_set_cookie_params([
+                'lifetime' => 3600,
+                'path'     => '/',
+                'secure'   => true,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+            session_start();
+        }
     }
 }
 
