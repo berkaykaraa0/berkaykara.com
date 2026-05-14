@@ -2,16 +2,24 @@
 // ============================================================
 // Database Configuration — InfinityFree Production
 // ============================================================
-define('DB_HOST', 'sql211.infinityfree.com');
-define('DB_NAME', 'if0_41916564_portfolio');
-define('DB_USER', 'if0_41916564');
-define('DB_PASS', 'saniUboEfxt');
-define('DB_CHARSET', 'utf8mb4');
+if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+    define('DB_HOST', '127.0.0.1;port=8889');
+    define('DB_NAME', 'portfolio_db');
+    define('DB_USER', 'root');
+    define('DB_PASS', 'root');
+    define('SITE_URL', 'http://localhost:8000');
+} else {
+    define('DB_HOST', 'sql211.infinityfree.com');
+    define('DB_NAME', 'if0_41916564_portfolio');
+    define('DB_USER', 'if0_41916564');
+    define('DB_PASS', 'saniUboEfxt');
+    define('SITE_URL', 'http://berkaykaraportfolio.rf.gd');
+}
 
+define('DB_CHARSET', 'utf8mb4');
 define('SITE_NAME', 'Berkay Kara');
 define('SITE_TITLE', 'Berkay Kara — Full-Stack Developer');
 define('SITE_EMAIL', 'berkaykr611@gmail.com');
-define('SITE_URL', 'http://berkaykaraportfolio.rf.gd');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('UPLOAD_URL', SITE_URL . '/uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);

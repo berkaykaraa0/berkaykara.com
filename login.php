@@ -9,8 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     if ($username && $password) {
         $db   = Database::connect();
-        $stmt = $db->prepare("SELECT * FROM users WHERE username = :u OR email = :u LIMIT 1");
-        $stmt->execute([':u' => $username]);
+        $stmt = $db->prepare("SELECT * FROM users WHERE username = :u OR email = :e LIMIT 1");
+        $stmt->execute([':u' => $username, ':e' => $username]);
         $user = $stmt->fetch();
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id']   = $user['id'];

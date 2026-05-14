@@ -1,42 +1,39 @@
 <?php
-$adminTitle = 'Messages';
 require_once __DIR__ . '/includes/admin_header.php';
-$messages = getContacts();
-$unread   = array_filter($messages, fn($m) => !$m['is_read']);
+$messages = getContacts(); 
 ?>
 
-<div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
-  <div class="stat-card" style="padding:1rem 1.5rem;flex:1;min-width:160px">
-    <div class="stat-card-label">Total</div>
-    <div class="stat-card-value" style="font-size:1.5rem"><?= count($messages) ?></div>
+<div class="glass-panel">
+  <div class="panel-header">
+    <h3 class="panel-title">Inbox</h3>
   </div>
-  <div class="stat-card" style="padding:1rem 1.5rem;flex:1;min-width:160px">
-    <div class="stat-card-label">Unread</div>
-    <div class="stat-card-value" style="font-size:1.5rem;<?= count($unread)>0?'background:linear-gradient(135deg,#f87171,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text':'' ?>"><?= count($unread) ?></div>
-  </div>
-</div>
-
-<div class="glass-card" style="padding:1.5rem">
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>From</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="messagesTable">
-        <?php foreach ($messages as $m): ?>
-        <tr id="msg-<?= $m['id'] ?>">
-          <td style="font-weight:<?= $m['is_read']?'400':'600' ?>">
-            <?php if (!$m['is_read']): ?><span class="unread-dot"></span><?php endif; ?>
+  <div class="premium-table-wrap">
+    <table class="premium-table">
+      <thead><tr><th>Sender</th><th>Subject</th><th>Date</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>
+        <?php foreach($messages as $m): ?>
+        <tr>
+          <td style="font-weight:600; display:flex; align-items:center; gap:0.5rem">
+            <?php if(!$m['is_read']): ?>
+            <span id="dot_<?= $m['id'] ?>" style="width:8px;height:8px;border-radius:50%;background:#f87171;box-shadow:0 0 8px #f87171"></span>
+            <?php endif; ?>
             <?= htmlspecialchars($m['name']) ?>
+            <div style="font-size:0.75rem;color:var(--muted);font-weight:400;margin-left:0.5rem"><?= htmlspecialchars($m['email']) ?></div>
           </td>
-          <td style="font-size:.82rem;color:var(--muted)"><?= htmlspecialchars($m['email']) ?></td>
-          <td style="font-size:.82rem"><?= htmlspecialchars(substr($m['subject']??'—',0,35)) ?></td>
-          <td style="font-size:.75rem;color:var(--muted)"><?= date('M d, Y', strtotime($m['created_at'])) ?></td>
-          <td><span class="badge <?= $m['is_read']?'':'success' ?>"><?= $m['is_read']?'Read':'New' ?></span></td>
-          <td>
-            <div style="display:flex;gap:.5rem">
-              <button class="btn-outline btn-sm" onclick="viewMessage(<?= $m['id'] ?>, <?= json_encode($m) ?>)">View</button>
-              <button class="btn-outline btn-sm" style="color:#f87171;border-color:rgba(248,113,113,.3)" onclick="deleteMessage(<?= $m['id'] ?>)">Delete</button>
-            </div>
+          <td style="color:var(--muted)"><?= htmlspecialchars($m['subject'] ?: 'No Subject') ?></td>
+          <td style="color:var(--muted)"><?= date('M d, Y', strtotime($m['created_at'])) ?></td>
+          <td style="text-align:right">
+            <?php if(!$m['is_read']): ?>
+              <button id="btn_<?= $m['id'] ?>" class="btn-neon" onclick="markAsRead(<?= $m['id'] ?>)">Mark Read</button>
+            <?php else: ?>
+              <button class="btn-neon" style="opacity:0.5;cursor:default">Read</button>
+            <?php endif; ?>
           </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="padding: 1rem; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #cbd5e1;">
+                <?= nl2br(htmlspecialchars($m['message'])) ?>
+            </td>
         </tr>
         <?php endforeach; ?>
       </tbody>
@@ -44,29 +41,34 @@ $unread   = array_filter($messages, fn($m) => !$m['is_read']);
   </div>
 </div>
 
-<!-- VIEW MESSAGE MODAL -->
-<div class="modal-overlay" id="msgModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Message from <span id="msgFrom"></span></h3>
-      <button class="modal-close" onclick="document.getElementById('msgModal').classList.remove('open')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-        <div class="info-card"><div class="info-card-label">Email</div><div class="info-card-value" id="msgEmail"></div></div>
-        <div class="info-card"><div class="info-card-label">Subject</div><div class="info-card-value" id="msgSubject"></div></div>
-      </div>
-      <div class="glass-card" style="padding:1.25rem">
-        <div class="info-card-label" style="margin-bottom:.75rem">Message</div>
-        <p id="msgBody" style="color:var(--text);line-height:1.8;font-size:.9rem;white-space:pre-wrap"></p>
-      </div>
-      <div style="display:flex;justify-content:flex-end">
-        <a id="msgReply" href="#" class="btn-primary btn-sm">Reply via Email ↗</a>
-      </div>
-    </div>
-  </div>
-</div>
+<script>
+document.getElementById('pageTitle').innerText = 'Messages';
+function markAsRead(id) {
+    fetch('<?= SITE_URL ?>/api/admin_messages.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_read', id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            const dot = document.getElementById('dot_'+id);
+            if(dot) dot.remove();
+            
+            const btn = document.getElementById('btn_'+id);
+            if(btn) {
+                btn.innerText = 'Read';
+                btn.onclick = null;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'default';
+            }
+            showToast('Message marked as read.');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(err => showToast('Network error', 'error'));
+}
+</script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php include __DIR__ . '/includes/admin_footer.php'; ?>
