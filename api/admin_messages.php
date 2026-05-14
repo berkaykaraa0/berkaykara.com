@@ -23,4 +23,16 @@ if ($action === 'mark_read') {
     }
 }
 
+if ($action === 'delete') {
+    $id = (int)($input['id'] ?? 0);
+    if ($id > 0) {
+        $success = deleteContact($id);
+        if ($success) {
+            jsonResponse(true, 'Message deleted');
+        } else {
+            jsonResponse(false, 'Failed to delete message');
+        }
+    }
+}
+
 jsonResponse(false, 'Invalid action');

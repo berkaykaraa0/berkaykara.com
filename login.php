@@ -8,15 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     if ($username && $password) {
+        $username = strtolower(trim($username));
         $db   = Database::connect();
-        $stmt = $db->prepare("SELECT * FROM users WHERE username = :u OR email = :e LIMIT 1");
+        $stmt = $db->prepare("SELECT * FROM users WHERE LOWER(username) = :u OR LOWER(email) = :e LIMIT 1");
         $stmt->execute([':u' => $username, ':e' => $username]);
         $user = $stmt->fetch();
+        
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id']   = $user['id'];
             $_SESSION['username']  = $user['username'];
             $_SESSION['full_name'] = $user['full_name'];
-            header('Location: ' . SITE_URL . '/admin/index.php');
+            
+            // Use relative path for safer redirection on localhost
+            header('Location: admin/index.php');
             exit;
         }
         $error = 'Invalid username or password.';

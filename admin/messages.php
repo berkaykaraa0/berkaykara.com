@@ -28,9 +28,10 @@ $messages = getContacts();
             <?php else: ?>
               <button class="btn-neon" style="opacity:0.5;cursor:default">Read</button>
             <?php endif; ?>
+            <button class="btn-neon" style="color:#f87171; border-color:rgba(248,113,113,0.3); margin-left:8px" onclick="deleteMessage(<?= $m['id'] ?>)">Delete</button>
           </td>
         </tr>
-        <tr>
+        <tr id="msg_row_<?= $m['id'] ?>">
             <td colspan="4" style="padding: 1rem; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #cbd5e1;">
                 <?= nl2br(htmlspecialchars($m['message'])) ?>
             </td>
@@ -43,6 +44,30 @@ $messages = getContacts();
 
 <script>
 document.getElementById('pageTitle').innerText = 'Messages';
+
+function deleteMessage(id) {
+    if(!confirm('Are you sure you want to delete this message?')) return;
+    
+    fetch('<?= SITE_URL ?>/api/admin_messages.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            // Remove both the header row and the message body row
+            const btn = document.getElementById('btn_'+id);
+            if(btn) btn.closest('tr').remove();
+            document.getElementById('msg_row_'+id).remove();
+            showToast('Message deleted successfully.');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(err => showToast('Network error', 'error'));
+}
+
 function markAsRead(id) {
     fetch('<?= SITE_URL ?>/api/admin_messages.php', {
         method: 'POST',

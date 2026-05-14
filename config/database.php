@@ -2,18 +2,22 @@
 // ============================================================
 // Database Configuration — InfinityFree Production
 // ============================================================
-if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+// Dynamic Site URL Detection
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+define('SITE_URL', $protocol . $host);
+
+if (strpos($host, 'localhost') !== false || $host === '127.0.0.1') {
     define('DB_HOST', '127.0.0.1;port=8889');
     define('DB_NAME', 'portfolio_db');
     define('DB_USER', 'root');
     define('DB_PASS', 'root');
-    define('SITE_URL', 'http://localhost:8000');
 } else {
+    // InfinityFree Production Settings
     define('DB_HOST', 'sql211.infinityfree.com');
     define('DB_NAME', 'if0_41916564_portfolio');
     define('DB_USER', 'if0_41916564');
     define('DB_PASS', 'saniUboEfxt');
-    define('SITE_URL', 'http://berkaykaraportfolio.rf.gd');
 }
 
 define('DB_CHARSET', 'utf8mb4');
